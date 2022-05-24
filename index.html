@@ -1,10 +1,134 @@
-<!DOCTYPE html>
 <html>
-<head>
+  <head>
     <meta charset="UTF-8">
-    <title>Hello World</title>
-</head>
-<body>
-    Hello World
-</body>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>遠隔操作パネル</title>
+
+    <style type="text/css">
+      #text-button1a {
+        width: 120px;
+        text-align: center;
+        background-color: #FF0000;
+      }
+      #text-button2a {
+        width: 120px;
+        text-align: center;
+        background-color: #FF0000;
+      }
+      #text-button1b {
+        width: 120px;
+        text-align: center;
+        background-color: #132dec;
+      }
+      #text-button2b {
+        width: 120px;
+        text-align: center;
+        background-color: #132dec;
+      }
+      ul {
+          display: flex;
+          margin: 0;
+          padding: 0;
+          list-style-type: none;
+      }
+      li {          
+          margin-right: 20px;
+      }
+      li:last-of-type {
+          margin-right: 0;
+      }
+  
+    </style>
+    <script>
+
+      let HOST = location.origin.replace(/^http/, 'ws')
+      let ws = new WebSocket(HOST);
+      let el;
+      let target_data1 = 0;
+      let target_data2 = 0;
+      let recv_curent = new Array(6);
+      let send_target = new Array(6);
+      ws.onmessage = (event) => {
+        el1 = document.getElementById('recv-current-angle1');
+        el2 = document.getElementById('recv-current-angle2');
+        const json_recv = JSON.parse(event.data);
+        recv_curent[0] = json_recv[0].ang;
+        recv_curent[1] = json_recv[1].ang;
+        el1.innerHTML = 'current1: ' + parseInt(json_recv[0].ang * 1000)/1000.0; 
+        el2.innerHTML = 'current2: ' + parseInt(json_recv[1].ang * 1000)/1000.0;
+        send_target[0] = target_data1;
+        send_target[1] = target_data2 ;
+        el_s1 = document.getElementById('send-target-angle1');
+        el_s2 = document.getElementById('send-target-angle2');
+        el_s1.innerHTML = 'target1: ' + send_target[0] ;
+        el_s2.innerHTML = 'target2: ' + send_target[1] ;
+        el_r1 = document.getElementById('is-reach1');
+        el_r2 = document.getElementById('is-reach2');
+        if (Math.abs(recv_curent[0] - target_data1) < 0.01 ){
+          el_r1.innerHTML = 'Reached OK';
+        }else{
+          el_r1.innerHTML = 'Not reached'; 
+        }
+        if (Math.abs(recv_curent[1] - target_data2) < 0.01 ){
+          el_r2.innerHTML = 'Reached OK';
+        }else{
+          el_r2.innerHTML = 'Not reached'; 
+        }
+        ws.send(JSON.stringify(
+        [
+        {
+          name: 'target1',
+          ang: send_target[0]
+        },
+        {
+          name: 'target2',
+          ang: send_target[1]
+        },
+        ]
+        )
+        );
+        document.getElementById("text-button1a").onclick = function() {
+            console.log('click');
+            target_data1 = target_data1 + 0.1;
+        };
+        document.getElementById("text-button2a").onclick = function() {
+            console.log('click');
+            target_data2 = target_data2 + 0.1;
+        };
+        document.getElementById("text-button1b").onclick = function() {
+            console.log('click');
+            target_data1 = target_data1 - 0.1;
+        };
+        document.getElementById("text-button2b").onclick = function() {
+            console.log('click');
+            target_data2 = target_data2 - 0.1;
+        };
+      };
+
+    </script>
+  </head>
+  <body>
+    <ul>
+      <li><p id="recv-current-angle1"></p></li>
+      <li><p id="send-target-angle1"></p></li>
+      <li><p id="is-reach1"></p></li>
+    </ul>
+    <ul>   
+      <li><div id="text-button1a"><p id="text">目標値100増加</p></div></li>    
+      <li><div id="text-button1b"><p id="text">目標値100減少</p></div></li> 
+    </ul>     
+    <ul>
+      <li><p id="recv-current-angle2"></p></li>
+      <li><p id="send-target-angle2"></p></li>
+      <li><p id="is-reach2"></p></li> 
+    </ul>
+    <ul>   
+      <li><div id="text-button2a"><p id="text">目標値100増加</p></div></li>    
+      <li><div id="text-button2b"><p id="text">目標値100減少</p></div></li> 
+    </ul>        
+    
+
+
+  </body>
 </html>
+
